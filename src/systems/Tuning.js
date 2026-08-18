@@ -28,8 +28,17 @@ export const GARY = {
 export const RAIDS = {
   // one raid on the very first nights, growing to three; MENACE pushes +1
   perNight(n) { return Math.min(3, 1 + Math.floor((n - 1) / 2)); },
-  firstDelay(night) { return Math.max(4, 13 - (night - 1) * 1.4 + Math.random() * 4); },
-  gap() { return 6 + Math.random() * 5; }
+  // Night 1 ~6-9s: enough calm for cats to arrive, short enough that the first
+  // encounter feels anticipated rather than delayed. Later nights tighten.
+  firstDelay(night) { return Math.max(3, 9 - (night - 1) * 1.0 + Math.random() * 3); },
+  gap() { return 7 + Math.random() * 4; }
+};
+
+// The "Gary found the gap" tension beat: a short, restrained slow-motion + sting.
+export const TENSION = {
+  beatDuration: 1.0,     // seconds of damped time on a breakthrough theft
+  timeScale: .35,        // simulation speed during the beat
+  catReachBeat: .5       // lighter beat when a cat reaches food after a long approach
 };
 
 export const ADAPT = {

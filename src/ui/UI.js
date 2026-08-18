@@ -7,7 +7,7 @@ export class UI {
   bind(){
     this.tray.addEventListener('click',e=>{const b=e.target.closest('[data-tool]');if(b){this.setTool(b.dataset.tool);this.handlers.tool?.(this.tool)}else if(e.target.closest('#start-night'))this.handlers.start?.()});
     $('#next-night').onclick=()=>this.handlers.shop?.();$('#shop-dusk').onclick=()=>this.handlers['shop-dusk']?.();this.shopList.addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b&&!b.disabled)this.handlers.buy?.(b.dataset.buy)});
-    $('#dev-toggle').onclick=()=>$('#dev-panel').classList.toggle('hidden');$('#dev-gary').onclick=()=>this.handlers.gary?.();$('#dev-speed').onclick=e=>this.handlers.speed?.(e.currentTarget);$('#dev-time').oninput=e=>this.handlers.time?.(+e.target.value);$('#dev-chow').onclick=()=>this.handlers.chow?.();
+    $('#dev-toggle').onclick=()=>$('#dev-panel').classList.toggle('hidden');$('#dev-gary').onclick=()=>this.handlers.gary?.();$('#dev-speed').onclick=e=>this.handlers.speed?.(e.currentTarget);$('#dev-time').oninput=e=>this.handlers.time?.(+e.target.value);$('#dev-chow').onclick=()=>this.handlers.chow?.();$('#dev-reset').onclick=()=>this.handlers.reset?.();
   }
   on(name,fn){this.handlers[name]=fn}
   setTool(tool){this.tool=tool;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b.dataset.tool===tool))}
@@ -24,7 +24,7 @@ export class UI {
   refreshShop(prog,traits,lastNight){this.shopNight.textContent=prog.night;this.shopChow.textContent=prog.chow;
     const g=(lastNight||{}).raids||0;
     let gl='Gary hasn’t fouled the yard yet. He’s out there, learning.';
-    if(g>0){gl=(g>1?`Gary made ${g} trips last night and kept finding his way back.`:`Gary made one quick trip last night before dawn.`);if(prog.night>=2&&traits&&traits.length){gl+=` Lately: Gary ${traitEvidenceHints(traits,{raids:g})[0]}.`}}
+    if(g>0){gl=(g>1?`Gary made ${g} trips last night and kept finding his way back.`:`Gary made one quick trip last night before dawn.`);if(prog.night>=2&&traits&&traits.length){gl+=` Lately: Gary ${traitEvidenceHints(traits,{raids:g})[0]}.`}}; if((lastNight||{}).recognition)gl+=` — ${lastNight.recognition}.`;
     this.shopGary.textContent=gl;
     this.shopList.innerHTML='';for(const u of UPGRADES){const lvl=prog.level(u.id),cost=prog.cost(u.id),maxed=prog.maxed(u.id),owned=prog.level(u.id)>0;const pips=Array.from({length:u.max},(_,i)=>`<i class="${i<lvl?'on':''}"></i>`).join('');const delta=maxed?'':`<span class="shop-delta">${nextDelta(u,lvl)}</span>`;const card=document.createElement('div');card.className='shop-item'+(owned?' owned':'');const btn=document.createElement('button');btn.dataset.buy=u.id;btn.textContent=maxed?'OWNED':`BUY ${cost}`;btn.disabled=!prog.afford(u.id);card.innerHTML=`<div class="shop-icon">${u.icon}</div><div class="shop-mid"><b>${u.name}</b><p>${u.desc}</p>${delta}<div class="pips">${pips}</div></div>`;card.append(btn);this.shopList.append(card)} }
 }

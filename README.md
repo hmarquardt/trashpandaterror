@@ -2,6 +2,10 @@
 
 A Three.js backyard strategy game about feeding feral cats while outsmarting an increasingly savvy raccoon.
 
+## Play it
+
+**Live build:** https://hmarquardt.github.io/trashpandaterror/
+
 ## Run locally
 
 ```bash
@@ -16,7 +20,11 @@ During dusk, select a bowl, barrier, or sprinkler and click the lawn to place it
 
 Gary adapts across nights: feed him a steady diet of sprinkler, hose, fence, or floodlight and he gets measurably smarter about it. Later nights bring earlier arrivals, fewer free rounds, and extra raid attempts.
 
-The developer panel (backtick) can scrub the time of night, summon Gary, and accelerate the simulation.
+The developer panel (backtick) can scrub the time of night, summon Gary, accelerate the simulation, add Chow, and **Reset save** (clears only Trash Panda Terror's own `localStorage` key).
+
+## Architecture
+
+Static native ES modules — no bundler, no build step, no package install. Three.js and OrbitControls are vendored under `vendor/three`; the UI fonts are vendored under `vendor/fonts`. There are no CDN references, no Google Fonts calls, and no external runtime dependencies. `index.html` ships an import map that resolves `three` and `three/addons/` to the local vendor files, and it also works when served from the `/trashpandaterror/` GitHub Pages subdirectory.
 
 ## Structure
 
