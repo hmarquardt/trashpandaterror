@@ -33,6 +33,7 @@ export class Game {
     this.setupLights();this.addStars();this.placeDefaults();this.bind();this.animate();
     this.audio=new AudioManager();
     this.ui.showShop(this.prog,this.gary.traits,this.lastNight={raids:0,chowEarned:0,recognition:''});
+    if(!this.saved.existed&&this.ui.shouldShowHint())setTimeout(()=>this.ui.showGuideHint(),800);
   }
   freshNightLog(){return {probes:0,bumps:0,reroutes:0,flanks:0,climbs:0,raids:0,hoses:0,munchCats:0,catsFed:[],catStartles:{},contested:false,sideE:0,sideW:0,big:false}}
   averageTrust(){return this.cats.reduce((n,c)=>n+c.def.trust,0)/this.cats.length}
@@ -51,7 +52,7 @@ export class Game {
   }
   bind(){
     addEventListener('resize',()=>this.resize());const el=this.renderer.domElement;el.addEventListener('pointerdown',e=>{this.audio.unlock();this.pointerDown(e)});el.addEventListener('pointermove',e=>this.pointerMove(e));el.addEventListener('pointerup',e=>this.pointerUp(e));el.addEventListener('contextmenu',e=>e.preventDefault());
-    addEventListener('keydown',e=>{this.audio.unlock();if(e.code==='Space'){e.preventDefault();if(this.state.phase==='DUSK')this.startNight()}if(e.key==='`')document.querySelector('#dev-panel').classList.toggle('hidden');const map={1:'select',2:'bowl',3:'barrier',4:'sprinkler',h:'hose',H:'hose'};if(map[e.key]){if(this.state.phase!=='PREP')this.ui.setTool(map[e.key])}});
+    addEventListener('keydown',e=>{this.audio.unlock();if(e.key==='Escape'){if(this.ui.guideOpen)this.ui.hideGuide();return}if(this.ui.guideOpen)return;if(e.code==='Space'){e.preventDefault();if(this.state.phase==='DUSK')this.startNight()}if(e.key==='`')document.querySelector('#dev-panel').classList.toggle('hidden');const map={1:'select',2:'bowl',3:'barrier',4:'sprinkler',h:'hose',H:'hose'};if(map[e.key]){if(this.state.phase!=='PREP')this.ui.setTool(map[e.key])}});
     this.ui.on('start',()=>{if(this.state.phase==='DUSK')this.startNight()});
     this.ui.on('shop-dusk',()=>this.beginDusk());
     this.ui.on('buy',id=>this.buy(id));
@@ -77,7 +78,7 @@ export class Game {
   pointerUp(){this.dragging=null;this.hosing=false;this.controls.enabled=true}
   spawnCats(){this.cats.forEach((c,i)=>c.spawn(2+i*4))}
   scheduleFirstRaid(){this.scheduleRaid(RAIDS.firstDelay(this.prog.night))}
-  startNight(){if(this.state.phase!=='DUSK')return;this.audio.startAmbient();this.state.phase='NIGHT';this.state.progress=NIGHT.progressStart;this.state.elapsed=0;this.spawnCats();this.scheduleFirstRaid();this.ui.nightMode();this.ui.toast('NIGHT FALLS','Crickets rise. Something rustles behind the shed.')}
+  startNight(){if(this.state.phase!=='DUSK')return;this.ui.markHintSeen();this.audio.startAmbient();this.state.phase='NIGHT';this.state.progress=NIGHT.progressStart;this.state.elapsed=0;this.spawnCats();this.scheduleFirstRaid();this.ui.nightMode();this.ui.toast('NIGHT FALLS','Crickets rise. Something rustles behind the shed.')}
   scheduleRaid(delay){const seq=++this.raidSeq;clearTimeout(this.raidTimer);this.raidTimer=setTimeout(()=>{if(seq!==this.raidSeq)return;this.launchRaid()},Math.max(.5,delay)*1000/this.state.speed)}
   launchRaid(){clearTimeout(this.raidTimer);this.raidTimer=null;if(!['NIGHT','DAWN'].includes(this.state.phase))return;if(this.gary.active)return;const from=this.raidsDone===0?[-9,-8]:this.randSpawn();if(this.state.phase==='NIGHT'&&!this.gary.root.visible)this.world.eyes.visible=true;this.world.rustleBush(from[0],from[1]);this.gary.spawn(1,from)}
   randSpawn(){return [[-9,-8],[8,-7],[11,5],[-13,10],[10,-6]][Math.floor(Math.random()*5)]}

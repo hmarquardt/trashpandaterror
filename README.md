@@ -20,6 +20,22 @@ During dusk, select a bowl, barrier, or sprinkler and click the lawn to place it
 
 Gary adapts across nights: feed him a steady diet of sprinkler, hose, fence, or floodlight and he gets measurably smarter about it. Later nights bring earlier arrivals, fewer free rounds, and extra raid attempts.
 
+## Controls
+
+**Mouse**
+- **Drag** — orbit the camera
+- **Scroll** — zoom
+- **Right-drag** — pan
+- **Click a bowl / barrier / sprinkler** — select; drag it to move it (DUSK)
+- **Click a cat** — inspect its temperament (DUSK)
+- **Pick a build tool, then click the lawn** — place a defense (DUSK)
+- **Hold with the garden hose** — aim and spray (NIGHT)
+
+**Keyboard**
+- `1` Inspect · `2` Food bowl · `3` Barrier · `4` Sprinkler · `H` Garden hose · `Space` Start night
+
+For the full guide (objective, game flow, strategy), open the **? · HOW TO PLAY** control in the top-right corner.
+
 The developer panel (backtick) can scrub the time of night, summon Gary, accelerate the simulation, add Chow, and **Reset save** (clears only Trash Panda Terror's own `localStorage` key).
 
 ## Architecture

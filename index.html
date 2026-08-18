@@ -32,6 +32,8 @@
     <div id="toast-stack" class="toast-stack"></div>
     <div id="thought" class="thought hidden"><span></span></div>
     <div id="alarm" class="alarm"></div>
+    <button id="guide-btn" class="guide-btn" aria-label="How to play" title="How to play">?</button>
+    <button id="guide-hint" class="guide-hint hidden"><b>FIRST NIGHT?</b><span>HOW TO PLAY</span></button>
     <section id="build-tray" class="build-tray">
       <button data-tool="select" class="selected"><span>↖</span><b>Inspect</b><small>1</small></button>
       <button data-tool="bowl"><span>◉</span><b>Food bowl</b><small>2</small></button>
@@ -70,6 +72,46 @@
         <p id="shop-gary" class="shop-gary"></p>
         <div id="shop-list" class="shop-list"></div>
         <button id="shop-dusk" class="shop-dusk">☾ &nbsp;HEAD OUT AT DUSK</button>
+      </div>
+    </section>
+    <section id="guide" class="guide hidden">
+      <div class="guide-card">
+        <header class="guide-head"><span class="eyebrow">FIELD MANUAL</span><h1>HOW TO PLAY</h1><button id="guide-close" class="guide-close" aria-label="Close" title="Close (Esc)">×</button></header>
+        <div class="guide-body">
+          <section><h2>Objective</h2><ul>
+            <li>Feed all three cats during the night.</li>
+            <li>Keep Gary out of the food as much as you can.</li>
+            <li>Avoid startling the cats and preserve their trust.</li>
+            <li>Earn <b>Chow</b> at dawn and spend it in PREP to improve the yard.</li>
+            <li>Survive nights that grow harder as Gary learns your tactics.</li>
+          </ul></section>
+          <section><h2>Game flow</h2><ul>
+            <li><b>PREP</b> — buy upgrades and review what Gary has been up to.</li>
+            <li><b>DUSK</b> — place and move bowls, barriers, and the sprinkler.</li>
+            <li><b>NIGHT</b> — cats feed, Gary raids, and active defenses (and the hose) do the work.</li>
+            <li><b>DAWN / RESULTS</b> — review the night, read the report, earn Chow.</li>
+          </ul></section>
+          <section><h2>Mouse</h2><ul>
+            <li><b>Drag</b> — orbit the camera.</li>
+            <li><b>Scroll</b> — zoom.</li>
+            <li><b>Right-drag</b> — pan.</li>
+            <li><b>Click a bowl / barrier / sprinkler</b> — select; drag it to move it (DUSK).</li>
+            <li><b>Click a cat</b> — inspect its temperament (DUSK).</li>
+            <li><b>Pick a build tool, then click the lawn</b> — place a defense (DUSK).</li>
+            <li><b>Hold with the garden hose</b> — aim and spray (NIGHT).</li>
+          </ul></section>
+          <section><h2>Keyboard</h2><div class="guide-keys">
+            <span><kbd>1</kbd> Inspect</span><span><kbd>2</kbd> Food bowl</span><span><kbd>3</kbd> Barrier</span><span><kbd>4</kbd> Sprinkler</span><span><kbd>H</kbd> Garden hose</span><span><kbd>Space</kbd> Start night</span>
+          </div></section>
+          <section><h2>Strategy</h2><ul>
+            <li>No single defense stays reliable forever — Gary learns repeated tactics.</li>
+            <li>Where you put the sprinkler matters more than what it sprinkles.</li>
+            <li>The hose is powerful, but it can frighten the cats.</li>
+            <li>Princess is especially sensitive to disturbances.</li>
+            <li>Watch Gary. He watches you — and he remembers.</li>
+            <li>Complementary defenses beat one-trick setups.</li>
+          </ul></section>
+        </div>
       </div>
     </section>
     <div class="hint">DRAG TO ORBIT · WHEEL TO ZOOM · CLICK THE YARD TO PLACE</div>

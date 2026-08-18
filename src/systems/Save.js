@@ -81,6 +81,7 @@ export function loadSave() {
   const gary = data.gary && typeof data.gary === 'object' ? data.gary : {};
   return {
     version,
+    existed: raw !== null && typeof raw === 'object' && !!(raw.cats || raw.gary || raw.prog),
     cats,                       // {id:trust} copied through as-is (Game validates)
     gary: {
       memory: normalizeMemory(gary.memory),

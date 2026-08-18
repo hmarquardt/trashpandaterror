@@ -44,3 +44,16 @@ button { font:inherit; color:inherit; }
 .shop-delta{display:block;margin:2px 0 4px;color:var(--lime);font:9px "DM Mono";letter-spacing:.04em}
 .shop-item.owned .shop-delta{color:var(--amber)}
 .result-obs{margin:8px 0 14px;text-align:left;font:10px/1.6 "DM Mono";color:#c7d1c7}.result-obs .obs{margin:0;padding:4px 0;border-top:1px solid #ffffff14}.result-obs p:first-child{border-top:0}
+
+/* ---------- PASS 4: HOW TO PLAY guide ---------- */
+.guide-btn{position:fixed;z-index:25;top:16px;right:18px;width:40px;height:40px;border-radius:50%;border:1px solid #c7d7c155;background:#091313d9;color:var(--cream);font:800 20px "Barlow Condensed";cursor:pointer;box-shadow:0 6px 24px #000a;pointer-events:auto}.guide-btn:hover{background:#162522;border-color:var(--lime)}
+.guide-hint{position:fixed;z-index:24;top:18px;right:66px;display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--amber);background:#241a10e8;color:var(--cream);cursor:pointer;font:12px "Barlow Condensed";letter-spacing:.1em}.guide-hint b{color:var(--amber)}.guide-hint span{color:#d9cbb0}.guide-hint:hover{box-shadow:0 0 18px #f2ac5033}
+.guide{position:fixed;z-index:30;inset:0;background:#020708cf;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.guide-card{width:min(720px,94vw);max-height:88vh;overflow-y:auto;background:linear-gradient(160deg,#101b1a,#07100e);border:1px solid #d2dcaa44;box-shadow:0 30px 100px #000;padding:26px 34px;color:var(--cream)}
+.guide-head{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid #ffffff14;padding-bottom:12px;margin-bottom:8px}.guide-head h1{font-size:32px;letter-spacing:.12em;margin:0;color:var(--cream)}
+.guide-close{margin-left:auto;background:none;border:1px solid #ffffff33;color:#cdd6cd;font-size:18px;width:30px;height:30px;border-radius:6px;cursor:pointer}.guide-close:hover{color:var(--amber);border-color:var(--amber)}
+.guide-body section{margin-top:14px}.guide-body h2{font:600 14px "DM Mono";letter-spacing:.18em;color:var(--lime);margin:0 0 6px}
+.guide-body ul{margin:0;padding-left:18px}.guide-body li{font:12px/1.6 "DM Mono";color:#d2d8ce;margin:3px 0}
+.guide-body b{color:var(--cream)}
+.guide-keys{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}.guide-keys span{font:12px "DM Mono";color:#d2d8ce;display:flex;align-items:center;gap:8px}.guide-keys kbd{display:inline-block;min-width:30px;text-align:center;padding:3px 8px;border:1px solid #c6d88455;border-bottom-width:2px;border-radius:5px;color:var(--lime);font-weight:600;background:#0c1614}
+@media(max-width:700px){.guide-card{padding:18px 16px}.guide-keys{grid-template-columns:1fr}.guide-hint{right:60px;padding:6px 10px;font-size:11px}.guide-btn{right:12px}}

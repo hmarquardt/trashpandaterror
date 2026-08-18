@@ -3,11 +3,12 @@ import { traitEvidenceHints } from '../data/gary.js';
 
 const $=s=>document.querySelector(s);
 export class UI {
-  constructor(){this.phase=$('#phase-label');this.clockFill=$('#clock-fill');this.clock=$('#clock-label');this.food=$('#food-value');this.trust=$('#trust-value');this.chow=$('#chow-value');this.tray=$('#build-tray');this.selection=$('#selection-card');this.thought=$('#thought');this.results=$('#results');this.shop=$('#shop');this.shopList=$('#shop-list');this.shopNight=$('#shop-night');this.shopChow=$('#shop-chow');this.shopGary=$('#shop-gary');this.resultsObs=$('#results-observations');this.tool='select';this.handlers={};this.bind()}
+  constructor(){this.phase=$('#phase-label');this.clockFill=$('#clock-fill');this.clock=$('#clock-label');this.food=$('#food-value');this.trust=$('#trust-value');this.chow=$('#chow-value');this.tray=$('#build-tray');this.selection=$('#selection-card');this.thought=$('#thought');this.results=$('#results');this.shop=$('#shop');this.shopList=$('#shop-list');this.shopNight=$('#shop-night');this.shopChow=$('#shop-chow');this.shopGary=$('#shop-gary');this.resultsObs=$('#results-observations');this.guide=$('#guide');this.guideBtn=$('#guide-btn');this.guideHint=$('#guide-hint');this.guideClose=$('#guide-close');this.guideOpen=false;this.tool='select';this.handlers={};this.bind()}
   bind(){
     this.tray.addEventListener('click',e=>{const b=e.target.closest('[data-tool]');if(b){this.setTool(b.dataset.tool);this.handlers.tool?.(this.tool)}else if(e.target.closest('#start-night'))this.handlers.start?.()});
     $('#next-night').onclick=()=>this.handlers.shop?.();$('#shop-dusk').onclick=()=>this.handlers['shop-dusk']?.();this.shopList.addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b&&!b.disabled)this.handlers.buy?.(b.dataset.buy)});
     $('#dev-toggle').onclick=()=>$('#dev-panel').classList.toggle('hidden');$('#dev-gary').onclick=()=>this.handlers.gary?.();$('#dev-speed').onclick=e=>this.handlers.speed?.(e.currentTarget);$('#dev-time').oninput=e=>this.handlers.time?.(+e.target.value);$('#dev-chow').onclick=()=>this.handlers.chow?.();$('#dev-reset').onclick=()=>this.handlers.reset?.();
+    this.guideBtn.onclick=()=>this.showGuide();this.guideHint.onclick=()=>this.showGuide();this.guideClose.onclick=()=>this.hideGuide();this.guide.addEventListener('click',e=>{if(e.target===this.guide)this.hideGuide()});
   }
   on(name,fn){this.handlers[name]=fn}
   setTool(tool){this.tool=tool;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b.dataset.tool===tool))}
@@ -21,6 +22,12 @@ export class UI {
   finish(stats,cats,trustDelta,rw,prog,rating,story,obs){$('#result-grade').textContent=rating.grade;$('#result-title').textContent=rating.title;$('#result-cats').textContent=`${cats.filter(c=>c.wasFed).length} / 3`;$('#result-cat-food').textContent=`${Math.round(stats.catFood*100)}%`;$('#result-theft').textContent=`${Math.round(stats.stolen*100)}%`;$('#result-trust').textContent=`${trustDelta>=0?'+':''}${Math.round(trustDelta)}`;$('#result-gary').textContent=`+${stats.adaptation}`;$('#result-startles').textContent=`${stats.catStartles||0}`;$('#result-chow').textContent=`+${rw.total}`;$('#result-total').textContent=prog.chow;$('#result-story').textContent=story;this.resultsObs.innerHTML=(obs&&obs.length)?obs.map(o=>`<p class="obs">• ${o}</p>`).join(''):'';this.results.classList.remove('hidden')}
   showShop(prog,traits,lastNight){this.shop.classList.remove('hidden');this.refreshShop(prog,traits,lastNight)}
   hideShop(){this.shop.classList.add('hidden')}
+  guideSeenKey(){return 'trashPandaTerror.howToSeen'}
+  shouldShowHint(){try{return !localStorage.getItem(this.guideSeenKey())}catch{return false}}
+  markHintSeen(){try{localStorage.setItem(this.guideSeenKey(),'1')}catch{}}
+  showGuideHint(){this.guideHint.classList.remove('hidden')}
+  showGuide(){this.guideOpen=true;this.guide.classList.remove('hidden');this.guideHint.classList.add('hidden');this.markHintSeen()}
+  hideGuide(){if(!this.guideOpen)return;this.guideOpen=false;this.guide.classList.add('hidden')}
   refreshShop(prog,traits,lastNight){this.shopNight.textContent=prog.night;this.shopChow.textContent=prog.chow;
     const g=(lastNight||{}).raids||0;
     let gl='Gary hasn’t fouled the yard yet. He’s out there, learning.';
