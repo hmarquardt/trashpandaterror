@@ -27,6 +27,7 @@
     </aside>
     <div id="toast-stack" class="toast-stack"></div>
     <div id="thought" class="thought hidden"><span></span></div>
+    <div id="alarm" class="alarm"></div>
     <section id="build-tray" class="build-tray">
       <button data-tool="select" class="selected"><span>↖</span><b>Inspect</b><small>1</small></button>
       <button data-tool="bowl"><span>◉</span><b>Food bowl</b><small>2</small></button>
@@ -39,7 +40,7 @@
     <section id="dev-panel" class="dev-panel hidden">
       <b>DEV WATCH</b>
       <label>Time <input id="dev-time" type="range" min="0" max="1" step="0.01" value="0"></label>
-      <button id="dev-gary">Summon Gary</button><button id="dev-speed">Speed ×4</button>
+      <button id="dev-gary">Summon Gary</button><button id="dev-speed">Speed ×4</button><button id="dev-chow">Chow +50</button>
     </section>
     <button id="dev-toggle" class="dev-toggle">DEV `</button>
     <section id="results" class="results hidden">
@@ -53,6 +54,7 @@
           <p>CHOW EARNED <b id="result-chow">+0</b></p><p>TOTAL CHOW <b id="result-total">0</b></p>
         </div>
         <blockquote id="result-story">The yard remained suspiciously peaceful.</blockquote>
+        <div id="results-observations" class="result-obs"></div>
         <button id="next-night">PREP &amp; SHOP</button>
       </div>
     </section>
@@ -61,6 +63,7 @@
         <span class="eyebrow">PROVISIONS &amp; PATCH-UPS</span>
         <h1>NIGHT <span id="shop-night">1</span></h1>
         <p class="shop-balance">CHOW IN THE BARREL <b id="shop-chow">0</b></p>
+        <p id="shop-gary" class="shop-gary"></p>
         <div id="shop-list" class="shop-list"></div>
         <button id="shop-dusk" class="shop-dusk">☾ &nbsp;HEAD OUT AT DUSK</button>
       </div>

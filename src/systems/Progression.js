@@ -1,63 +1,83 @@
 import { RATINGS } from '../data/animals.js';
+import { REWARD, DEFENSE } from './Tuning.js';
 
 // ---------------------------------------------------------------------------
-// Progression & economy
-//
-// Currency is "Chow" — cat food currency. Earn it by feeding the cats, keeping
-// bowls stocked, keeping raccoon theft low and not chancing the cats. Spend it
-// in the PREP shop on upgrades to the feeding station. Everything persists.
+// Progression & economy. Currency is "Chow", earned each dawn and spent in the
+// PREP shop. Each upgrade fills a distinct niche so the defense meta stays
+// complementary (detection + protection + active deterrence) instead of
+// "buy every sprinkler part".
 // ---------------------------------------------------------------------------
 
 export const SAVE_KEY = 'trashPandaTerror.save';
 
 export const UPGRADES = [
   { id:'anchors', name:'Anchored Bowls', icon:'⚓',
-    desc:'Weights bolted to every bowl. Gary munches at a gentler pace and steals less per bite.',
-    max:3, costs:[25,45,70] },
+    desc:'Weights bolt to every bowl. Gary steals slower once he reaches food.',
+    max:3, costs:[20,35,50] },
   { id:'platform', name:'Raised Feeding Deck', icon:'▤',
-    desc:'A wobbly deck lifts the bowls. Cats hop right up; Gary has to pause and climb before every snack.',
-    max:2, costs:[40,70] },
+    desc:'Lifts the bowls clear of the lawn. Cats hop up in one bound; Gary has to stop and climb.',
+    max:2, costs:[35,60] },
   { id:'fence', name:'Unbreakable Barrier', icon:'▰',
-    desc:'Doubles the fence\u2019s grudge. Gary gets shoved harder and pushed from further away.',
-    max:2, costs:[30,55] },
+    desc:'Redirects Gary around a wider, harsher keep-out radius instead of stopping him cold.',
+    max:2, costs:[25,45] },
   { id:'sprinklerSmart', name:'Cat-Aware Sensor', icon:'◎',
-    desc:'The sprinkler finally learns the difference between a cat and a raccoon. No more friendly fire. Radius +0.3 m.',
-    max:1, costs:[50] },
+    desc:'Stops spraying cats entirely. Gary still learns the wet zone every time you rely on it.',
+    max:1, costs:[45] },
   { id:'sprinklerRadius', name:'Long-Reach Nozzle', icon:'✣',
-    desc:'Spray reach stretches further into the night. Radius +0.6 m per level.',
-    max:2, costs:[20,35] },
+    desc:'Wider spray arc. Course-corrects, but Gary reads a big ring faster than a small one.',
+    max:2, costs:[30,50] },
   { id:'sprinklerRecharge', name:'Hydro-Boost Reserve', icon:'↻',
-    desc:'A pressurised bottle caches water so the sprinkler recharges faster.',
-    max:2, costs:[20,40] },
+    desc:'Pressurised water cache recharges the sprinkler sooner between blasts.',
+    max:2, costs:[30,50] },
   { id:'hosePressure', name:'Hose Pressure 5000', icon:'≋',
-    desc:'Rat-choked pressure. Flings Gary further. Stings the cats exactly as much as before.',
-    max:2, costs:[25,50] },
+    desc:'Manual, attention-hungry but brutal: flings Gary further and can shove a cat now and then.',
+    max:2, costs:[30,55] },
   { id:'motionLight', name:'Guilt-Free Floodlight', icon:'☀',
-    desc:'The porch light flares when Gary slinks toward the bowls. He hesitates, and snacks slowly, in shame.',
-    max:1, costs:[45] }
+    desc:'Burns away darkness so Gary hesitates and snacks slower. Costs nothing to run, but it has a tell.',
+    max:1, costs:[40] }
 ];
 
 // Turn a level map { id: level } into concrete gameplay modifiers.
 export function computeEffects(up) {
   const L = id => up[id] || 0;
   return {
-    garyEatRate: Math.max(.5, 1 - L('anchors') * .08),
-    platformPause: L('platform') * 1.05,          // seconds Gary stops to climb per raised bowl
-    barrierRadius: 1.65 * (1 + L('fence') * .45),
-    barrierStrength: 1.8 * (1 + L('fence') * .6),
-    sprinklerRadius: 4 + L('sprinklerRadius') * .6 + (L('sprinklerSmart') ? .3 : 0),
-    sprinklerCooldown: Math.max(2.2, 5.5 - L('sprinklerRecharge') * 1.15),
+    garyEatRate: Math.max(.5, 1 - L('anchors') * .11),
+    platformPause: L('platform') * 1.15,            // seconds Gary stops to climb each deck
+    barrierRadius: DEFENSE.barrierRadius + L('fence') * .5,
+    barrierStrength: DEFENSE.barrierStrength * (1 + L('fence') * .5),
+    sprinklerRadius: Math.min(5.5, DEFENSE.sprinklerRadius + L('sprinklerRadius') * .5 + (L('sprinklerSmart') ? .2 : 0)),
+    sprinklerCooldown: Math.max(3.2, DEFENSE.sprinklerCooldown - L('sprinklerRecharge') * 1.15),
     sprinklerCatAware: L('sprinklerSmart') >= 1,
-    hoseForce: 1 + L('hosePressure') * .45,
-    hoseRange: 1.35 + L('hosePressure') * .22,
+    hoseForce: DEFENSE.hoseForce + L('hosePressure') * .35,
+    hoseRange: DEFENSE.hoseRange + L('hosePressure') * .16,
     motionLight: L('motionLight') >= 1
   };
 }
+
+// Readable numeric "current -> next" change for a shop card (PASS 3 readability).
+function fmt(v) { return Math.round(v * 100) / 100; }
+export function nextDelta(up, level) {
+  const now = computeEffects({ [up.id]: level });
+  const next = computeEffects({ [up.id]: level + 1 });
+  switch (up.id) {
+    case 'anchors': return `theft speed ${fmt(now.garyEatRate)}x → ${fmt(next.garyEatRate)}x`;
+    case 'platform': return formatNil(now.platformPause, next.platformPause, 's climb');
+    case 'fence': return `${fmt(now.barrierRadius)}m → ${fmt(next.barrierRadius)}m keep-out`;
+    case 'sprinklerSmart': return 'stops bathing your cats';
+    case 'sprinklerRadius': { const a = fmt(now.sprinklerRadius), b = fmt(next.sprinklerRadius); return a === b ? `spray ${a}m (cap)` : `${a}m → ${b}m spray`; }
+    case 'sprinklerRecharge': return `${fmt(now.sprinklerCooldown)}s → ${fmt(next.sprinklerCooldown)}s recharge`;
+    case 'hosePressure': return `${fmt(now.hoseForce)}x → ${fmt(next.hoseForce)}x force`;
+    case 'motionLight': return 'Gary hesitates & eats slowly in the light';
+    default: return '';
+  }
+}
+function formatNil(a, b, unit) { return `${fmt(a)}${unit} → ${fmt(b)}${unit}`; }
+
 // ---------------------------------------------------------------------------
-// Reward. Bounded, readable, and gated to never fully stall progression.
+// Reward. Central values live in Tuning.reward.
 // ---------------------------------------------------------------------------
-export function computeReward(night, stats, cats, avgTrust, trustDelta, served) {
-  const fed = cats.filter(c => c.wasFed).length;
+export function computeReward(night, stats, cats, avgTrust, trustDelta, served, fedOverride) {
+  const fed = fedOverride != null ? fedOverride : cats.filter(c => c.wasFed).length;
   const s = Math.max(1, served);
   const catFrac = Math.min(1, stats.catFood / s);
   const theftFrac = Math.min(1, stats.stolen / s);
@@ -65,30 +85,34 @@ export function computeReward(night, stats, cats, avgTrust, trustDelta, served) 
   const leftoverFrac = Math.min(1, leftover / s);
   const startles = stats.catStartles || 0;
 
-  let total = 8;                                   // participation + a forgiving floor
-  total += fed * 5;                                // fed cats
-  total += Math.round(catFrac * 8);                // food that actually reached cats
-  total += Math.round(leftoverFrac * 3);           // food still in bowls at dawn
-  total += Math.round(Math.max(0, avgTrust - 45) / 12); // standing trust bonus
-  if (trustDelta > 0) total += 4;                  // trust improved tonight
-  total -= Math.round(theftFrac * 14);             // stolen by Gary
-  total -= Math.round(startles * 1.25);            // startled cats (still punish, but not crippling)
-  total = Math.max(3, Math.round(total));          // always enough to buy something next
+  let total = REWARD.base;
+  total += fed * REWARD.perFed;
+  total += Math.round(catFrac * REWARD.catFrac);
+  total += Math.round(leftoverFrac * REWARD.leftover);
+  total += Math.round(Math.max(0, avgTrust - REWARD.trustStand) / REWARD.trustStandScalar);
+  if (trustDelta > 0) total += REWARD.trustDelta;
+  total -= Math.round(theftFrac * REWARD.theftPenalty);
+  total -= Math.round(startles * REWARD.startlePenalty);
+  total = Math.max(3, Math.round(total));
 
   return { total, fed, catFrac, theftFrac, leftoverFrac, startles, trustDelta, served };
 }
 
 // ---------------------------------------------------------------------------
-// Headline — rule based, deterministic.
+// Headline — rule based, deterministic-ish, tone-matched to the night.
 // ---------------------------------------------------------------------------
-export function headline(night, stats, cats, rw) {
+export function headline(night, stats, cats, rw, extras) {
   const fed = cats.filter(c => c.wasFed).length;
   const names = cats.map(c => c.def.name);
   const heist = rw.theftFrac > .4;
   const tidy = rw.theftFrac < .12 && fed === cats.length;
   const doomed = fed === 0;
   const skittishHurt = (stats.catStartles || 0) > 2;
+  extras = extras || {};
 
+  if (extras.raids > 2) {
+    return `Gary staged ${extras.raids} excursions tonight and still found ${Math.round(rw.theftFrac * 100)}%. Dedication.`;
+  }
   if (stats.stolen <= 0 && stats.adaptation > 0) {
     return 'Zero chow stolen. Gary insists he went home for a vegetable. Nobody buys it.';
   }
@@ -105,6 +129,7 @@ export function headline(night, stats, cats, rw) {
   if (stats.adaptation > 3 && rw.theftFrac > .2) pool.push('Gary is taking notes. Between bites. On your flowers.');
   if (fed === cats.length && rw.theftFrac > .2) pool.push('The cats dined inside. Gary dined outside. Both of them ate well.');
   if (rw.trustDelta > 0) pool.push('The cats are starting to call this place home. Gary redecorates nightly.');
+  if (extras.climbs > 0) pool.push(`Gary balanced on a ${extras.climbs > 1 ? 'couple of' : ''} feeding decks to reach the spoils.`);
 
   if (pool.length) return pool[night % pool.length];
   return stats.adaptation > 1
