@@ -8,7 +8,7 @@ export const CAT_DEFS = [
 ];
 
 export const GARY_DEF = {
-  id:'gary', name:'Gary', coat:0x555955, accent:0x1a1c1b, trust:0,
+  id:'gary', name:'Gary', coat:0x9aa19b, accent:0x1a1c1b, trust:0,
   hunger:.9, boldness:.72, intelligence:.58, strength:.8, curiosity:.74,
   approach:[-9,-8]
 };
