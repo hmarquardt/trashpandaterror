@@ -28,7 +28,7 @@ export class Game {
     const traits=this.saved.needsPersonality?rollTraits():this.saved.gary.personality||[];
     this.gary=new Agent(GARY_DEF,'raccoon',this.scene,{memory:this.saved.gary.memory||{},traits});
     this.history=this.saved.gary.history||{sprinkler:{total:0,streak:0},side:{east:0,west:0},climbs:{total:0,streak:0},barrier:{total:0,streak:0},bigTheft:0};
-    this.selected=null;this.dragging=null;this.hosing=false;this.hoseTimer=0;this.baseTrust=this.averageTrust();this.raidTimer=null;this.raidsTotal=1;this.raidsDone=0;this.raidSeq=0;this.theftNotified=false;this.camPulse=0;this.beatT=0;this.lightFlashed=false;this.firstGaryCallout=false;
+    this.selected=null;this.dragging=null;this.hosing=false;this.hoseTimer=0;this.baseTrust=this.averageTrust();this.raidTimer=null;this.raidsTotal=1;this.raidsDone=0;this.raidSeq=0;this.theftNotified=false;this.camPulse=0;this.beatT=0;this.lightFlashed=false;this.firstGaryCallout=false;this.pointerId=null;
     this.nightLog=this.freshNightLog();
     this.setupLights();this.addStars();this.placeDefaults();this.bind();this.animate();
     this.audio=new AudioManager();
@@ -55,7 +55,7 @@ export class Game {
     this.world.eyes.visible=false;this.ui.resetNightUI();
   }
   bind(){
-    addEventListener('resize',()=>this.resize());const el=this.renderer.domElement;el.addEventListener('pointerdown',e=>{this.audio.unlock();this.pointerDown(e)});el.addEventListener('pointermove',e=>this.pointerMove(e));el.addEventListener('pointerup',e=>this.pointerUp(e));el.addEventListener('contextmenu',e=>e.preventDefault());
+    addEventListener('resize',()=>this.resize());const el=this.renderer.domElement;el.addEventListener('pointerdown',e=>{this.audio.unlock();this.pointerDown(e)});el.addEventListener('pointermove',e=>this.pointerMove(e));el.addEventListener('pointerup',e=>this.pointerUp(e));el.addEventListener('pointercancel',e=>this.pointerCancel(e));el.addEventListener('contextmenu',e=>e.preventDefault());
     addEventListener('keydown',e=>{this.audio.unlock();if(e.key==='Escape'){if(this.ui.guideOpen)this.ui.hideGuide();return}if(this.ui.guideOpen)return;if(e.code==='Space'){e.preventDefault();if(this.state.phase==='DUSK')this.startNight()}if(e.key==='`')document.querySelector('#dev-panel').classList.toggle('hidden');const map={1:'select',2:'bowl',3:'barrier',4:'sprinkler',h:'hose',H:'hose'};if(map[e.key]){if(this.state.phase!=='PREP')this.ui.setTool(map[e.key])}});
     this.ui.on('start',()=>{if(this.state.phase==='DUSK')this.startNight()});
     this.ui.on('shop-dusk',()=>this.beginDusk());
@@ -75,11 +75,31 @@ export class Game {
   mouse(e){const r=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);this.raycaster.setFromCamera(this.pointer,this.camera)}
   rootItem(o){while(o&&o!==this.scene){if(o.userData?.type)return o;o=o.parent}return null}
   groundPoint(e){this.mouse(e);const hit=this.raycaster.intersectObject(this.world.interactables[0])[0];return hit?.point}
-  pointerDown(e){this.mouse(e);if(this.ui.tool==='hose'&&this.state.phase==='NIGHT'){this.hosing=true;this.controls.enabled=false;return}const hits=this.raycaster.intersectObjects(this.objects.items,true);const item=hits.length?this.rootItem(hits[0].object):null;if(item&&(this.state.phase==='DUSK'||this.ui.tool==='select')){if(this.state.phase==='DUSK'){this.dragging=item;this.controls.enabled=false}this.selected=item;this.ui.select(item);return}
-    const ah=this.raycaster.intersectObjects(this.cats.map(c=>c.root),true);if(ah.length&&this.state.phase==='DUSK'){let o=ah[0].object;while(o&&!o.userData.agent)o=o.parent;if(o.userData.agent?.type==='cat'){this.ui.inspectCat(o.userData.agent);return}}
-    const p=this.groundPoint(e);if(p&&this.state.phase==='DUSK'&&['bowl','barrier','sprinkler'].includes(this.ui.tool)){const placed=this.objects.place(this.ui.tool,p);if(placed){this.audio.play('bowl');this.selected=placed;this.ui.select(placed)}else this.ui.toast('BUILD LIMIT','That is all you have tonight.')}}
-  pointerMove(e){if(!this.dragging&&!this.hosing)return;const p=this.groundPoint(e);if(this.dragging&&p){this.dragging.position.x=THREE.MathUtils.clamp(p.x,-14,14);this.dragging.position.z=THREE.MathUtils.clamp(p.z,-7.8,11.5)}if(this.hosing&&p){this.hoseTarget=p}}
-  pointerUp(){this.dragging=null;this.hosing=false;this.controls.enabled=true}
+  pointerCapture(e){this.pointerId=e.pointerId;try{this.renderer.domElement.setPointerCapture(e.pointerId)}catch{}}
+  releaseCapture(){if(this.pointerId!=null){try{this.renderer.domElement.releasePointerCapture(this.pointerId)}catch{}this.pointerId=null}}
+  itemAt(e){const hits=this.raycaster.intersectObjects(this.objects.items,true);const item=hits.length?this.rootItem(hits[0].object):null;return item}
+  animalAt(e){const ah=this.raycaster.intersectObjects([...this.cats,this.gary].map(a=>a.root),true);if(!ah.length)return null;let o=ah[0].object;while(o&&!o.userData.agent)o=o.parent;return o&&o.userData.agent?o.userData.agent:null}
+  inspectAnimal(a){if(a.type==='cat')this.ui.inspectCat(a);else this.ui.inspectGary(a,this.garyInspectLine())}
+  garyInspectLine(){const L=this.nightLog;if(this.state.phase==='NIGHT'&&this.gary.active)return 'Raccoon · currently raiding the yard';if(this.nightLog.hoses>0)return 'Raccoon · not a fan of the hose.';if(L.probes>0)return 'Raccoon · keeps testing the sprinkler line.';if(L.climbs>0)return 'Raccoon · climbed the feeding deck.';if(L.flanks>0)return 'Raccoon · slips in through the bushes.';if(L.bumps>0)return 'Raccoon · tried his luck at the barrier.';return 'Raccoon · he is out here every night. Watch the bowls.'}
+  endAction(){this.dragging=null;this.hosing=false;this.hoseTarget=null;this.controls.enabled=true;this.objects.setHoseAim(null,(this.prog.effects()||{}).hoseRange||1.35);this.releaseCapture()}
+  pointerCancel(){this.endAction()}
+  pointerDown(e){this.mouse(e);this.controls.enabled=true;const tool=this.ui.tool,night=this.state.phase==='NIGHT',dusk=this.state.phase==='DUSK';
+    if(tool==='hose'){
+      if(!night){this.ui.toast('HOSE','HOSE — available after nightfall');return}
+      this.pointerCapture(e);this.hosing=true;this.controls.enabled=false;const p=this.groundPoint(e);if(p)this.hoseTarget=p;return;
+    }
+    if(tool==='select'){
+      const a=this.animalAt(e);if(a){this.pointerCapture(e);this.controls.enabled=false;this.inspectAnimal(a);return}
+      const item=this.itemAt(e);if(item){this.selected=item;this.ui.select(item);if(dusk){this.pointerCapture(e);this.dragging=item;this.controls.enabled=false}return}return;
+    }
+    if(dusk&&['bowl','barrier','sprinkler'].includes(tool)){
+      const item=this.itemAt(e);if(item){this.pointerCapture(e);this.dragging=item;this.selected=item;this.controls.enabled=false;this.ui.select(item);return}
+      const p=this.groundPoint(e);if(p){const placed=this.objects.place(tool,p);if(placed){this.audio.play('bowl');this.selected=placed;this.ui.select(placed)}else this.ui.toast('BUILD LIMIT','That is all you have tonight.')}return;
+    }
+    if(['bowl','barrier','sprinkler'].includes(tool)){this.ui.toast(tool.toUpperCase(),`${tool} — place it during DUSK`);return}
+  }
+  pointerMove(e){if(!this.dragging&&!this.hosing)return;const p=this.groundPoint(e);if(this.dragging&&p){this.dragging.position.x=THREE.MathUtils.clamp(p.x,-14,14);this.dragging.position.z=THREE.MathUtils.clamp(p.z,-7.8,11.5)}if(this.hosing&&p)this.hoseTarget=p}
+  pointerUp(){this.endAction()}
   spawnCats(){this.cats.forEach((c,i)=>c.spawn(2+i*4))}
   scheduleFirstRaid(){this.scheduleRaid(RAIDS.firstDelay(this.prog.night))}
   startNight(){if(this.state.phase!=='DUSK')return;this.ui.markHintSeen();this.audio.startAmbient();this.state.phase='NIGHT';this.state.progress=NIGHT.progressStart;this.state.elapsed=0;this.spawnCats();this.scheduleFirstRaid();this.ui.nightMode();this.ui.toast('NIGHT FALLS','Crickets rise. Something rustles behind the shed.')}
