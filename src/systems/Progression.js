@@ -85,17 +85,18 @@ export function computeReward(night, stats, cats, avgTrust, trustDelta, served, 
   const leftoverFrac = Math.min(1, leftover / s);
   const startles = stats.catStartles || 0;
 
-  let total = REWARD.base;
-  total += fed * REWARD.perFed;
-  total += Math.round(catFrac * REWARD.catFrac);
-  total += Math.round(leftoverFrac * REWARD.leftover);
-  total += Math.round(Math.max(0, avgTrust - REWARD.trustStand) / REWARD.trustStandScalar);
-  if (trustDelta > 0) total += REWARD.trustDelta;
-  total -= Math.round(theftFrac * REWARD.theftPenalty);
-  total -= Math.round(startles * REWARD.startlePenalty);
+  const base = REWARD.base;
+  const fedB = fed * REWARD.perFed;
+  const foodB = Math.round(catFrac * REWARD.catFrac);
+  const leftB = Math.round(leftoverFrac * REWARD.leftover);
+  const trustB = Math.round(Math.max(0, avgTrust - REWARD.trustStand) / REWARD.trustStandScalar) + (trustDelta > 0 ? REWARD.trustDelta : 0);
+  const theftP = Math.round(theftFrac * REWARD.theftPenalty);
+  const startleP = Math.round(startles * REWARD.startlePenalty);
+  let total = base + fedB + foodB + leftB + trustB - theftP - startleP;
   total = Math.max(3, Math.round(total));
 
-  return { total, fed, catFrac, theftFrac, leftoverFrac, startles, trustDelta, served };
+  return { total, fed, catFrac, theftFrac, leftoverFrac, startles, trustDelta, served,
+    breakdown: { base, fed: fedB, food: foodB, leftover: leftB, trust: trustB, theft: theftP, startle: startleP, total } };
 }
 
 // ---------------------------------------------------------------------------

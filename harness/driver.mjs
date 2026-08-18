@@ -199,6 +199,40 @@ async function escalate(){
   console.log('ESCALATE_SCENARIO_RESULTS\n'+R.join('\n'));
   const fail=R.filter(x=>x.startsWith('FAIL'));console.log('TOTAL '+(R.length-fail.length)+'/'+R.length);
 }
+async function reward(){
+  const R=[],ok=(n,c)=>R.push((c?'PASS':'FAIL')+' | '+n);
+  await fresh(); await evalJs('localStorage.clear();location.reload();true'); await waitFor('!!window.__TRASH_PANDA_TERROR__',8000,'boot'); await sleep(300);
+  await evalJs('window.__TRASH_PANDA_TERROR__.prog.night=5;window.__TRASH_PANDA_TERROR__.humanIntroSeen=false;true');
+  await click('#shop-dusk'); await waitFor('window.__TRASH_PANDA_TERROR__.state.phase==="DUSK"',4000,'DUSK');
+  await setSpeed(50); await startNight();
+  let hs=false;try{await waitFor('window.__TRASH_PANDA_TERROR__.world.human&&window.__TRASH_PANDA_TERROR__.world.human.shown===1',8000,'human');hs=true}catch(e){hs=false}
+  const introMem=await evalJs('window.__TRASH_PANDA_TERROR__.humanIntroSeen');
+  ok('Night5 human intro fires deterministically', hs && introMem===true);
+  await evalJs('location.reload();true'); await waitFor('!!window.__TRASH_PANDA_TERROR__',8000,'reboot');
+  ok('humanIntro persists after reload', await evalJs('!!window.__TRASH_PANDA_TERROR__.saved.humanIntro'));
+  await click('#shop-dusk'); await waitFor('window.__TRASH_PANDA_TERROR__.state.phase==="DUSK"',4000,'DUSK2');
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;g.state.phase='NIGHT';g.state.speed=0;g.state.elapsed=100;g.stats.catStartles=0;g.cats.forEach(c=>{c.root.visible=false;c.active=false});g.gary.root.visible=false;g.gary.active=false;g.kits.forEach(k=>{k.root.visible=false;k.active=false});const k=g.kits[0];k.root.visible=true;k.root.position.set(6,0,-6);k.state='watching';k.active=true;k.lastStartle=-99;g.scene.updateMatrixWorld(true);true})()`);
+  await click('#build-tray [data-tool="hose"]');
+  const kp=await worldPx(6,0.2,-6);
+  await mouse(kp.x,kp.y,'mouseMoved'); await mouse(kp.x,kp.y,'mousePressed'); await sleep(500);
+  const kitS=await evalJs('window.__TRASH_PANDA_TERROR__.stats.catStartles');
+  const kitF=await evalJs('window.__TRASH_PANDA_TERROR__.kits[0].state==="fleeing"');
+  await mouse(300,300,'mouseReleased');
+  ok('Hose kit -> catStartles stays 0', kitS===0);
+  ok('Hose kit -> flees', kitF);
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;g.stats.catStartles=0;g.kits[0].root.visible=false;g.kits[0].active=false;const c=g.cats[0];c.root.visible=true;c.root.position.set(6,0,-6);c.state='watching';c.active=true;c.lastStartle=-99;g.scene.updateMatrixWorld(true);true})()`);
+  await mouse(kp.x,kp.y,'mouseMoved'); await mouse(kp.x,kp.y,'mousePressed'); await sleep(500);
+  const c1=await evalJs('window.__TRASH_PANDA_TERROR__.stats.catStartles');
+  await mouse(300,300,'mouseReleased');
+  ok('Hose cat frozen -> exactly 1 startle (debounced)', c1===1);
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;g.state.elapsed+=3;g.cats[0].lastStartle=-99;true})()`);
+  await mouse(kp.x,kp.y,'mouseMoved'); await mouse(kp.x,kp.y,'mousePressed'); await sleep(400);
+  const c2=await evalJs('window.__TRASH_PANDA_TERROR__.stats.catStartles');
+  await mouse(300,300,'mouseReleased');
+  ok('Separate spaced cat spray -> 2 startles', c2===2);
+  console.log('REWARD_SCENARIO_RESULTS\n'+R.join('\n'));
+  const fail=R.filter(x=>x.startsWith('FAIL'));console.log('TOTAL '+(R.length-fail.length)+'/'+R.length);
+}
 const scenario = process.argv[2] || 'shot';
-(async () => { if (scenario === 'input') await input(); else if (scenario === 'behavior') await behavior(); else if (scenario === 'tom') await tom(); else if (scenario === 'escalate') await escalate(); else { await fresh(); if (scenario === 'diag') await diag(); else if (scenario === 'catdiag') await catdiag(); else if (scenario === 'shot') await shot(); else if (scenario === 'bounds') await bounds(); else if (scenario === 'bme') await bme(); else if (scenario === 'prep') await doPrep(); else if (scenario === 'idle') await doRun(false); else if (scenario === 'active') await doRun(true); } process.exit(0); })().catch(e => { console.error('FATAL', e); process.exit(1); });
+(async () => { if (scenario === 'input') await input(); else if (scenario === 'behavior') await behavior(); else if (scenario === 'tom') await tom(); else if (scenario === 'escalate') await escalate(); else if (scenario === 'reward') await reward(); else { await fresh(); if (scenario === 'diag') await diag(); else if (scenario === 'catdiag') await catdiag(); else if (scenario === 'shot') await shot(); else if (scenario === 'bounds') await bounds(); else if (scenario === 'bme') await bme(); else if (scenario === 'prep') await doPrep(); else if (scenario === 'idle') await doRun(false); else if (scenario === 'active') await doRun(true); } process.exit(0); })().catch(e => { console.error('FATAL', e); process.exit(1); });
 async function snap() { return evalJs(SNAP); }

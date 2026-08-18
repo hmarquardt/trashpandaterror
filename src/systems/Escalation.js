@@ -20,7 +20,9 @@ export const HUMAN_INTRO_NIGHT = 5;
 // when the raccoon pressure / past acts justify it. Never every single night.
 export function humanShouldAct(night, chaos, humanSeen, rnd = Math.random) {
   if (night < HUMAN_INTRO_NIGHT) return false;
-  if (!humanSeen) return rnd() < 0.92;
+  // First-ever introduction: guaranteed on the first Night>=5 once a raccoon is
+  // actually around (no repeated probabilistic roll that could fail).
+  if (!humanSeen) return chaos >= 1;
   if (chaos >= 2) return rnd() < 0.42;   // multiple raccoons at once
   if (night % 3 === 0) return rnd() < 0.3;
   return false;
