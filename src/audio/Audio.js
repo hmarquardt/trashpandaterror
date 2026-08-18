@@ -22,6 +22,9 @@ export class AudioManager {
     // A short suspense sting for the "Gary found the gap" beat.
     if(name==='sting'){this.tone(74,.6,'sawtooth',.085,-12,pan);setTimeout(()=>this.tone(150,.3,'square',.05,-110,pan),40);setTimeout(()=>this.tone(49,.7,'sine',.10,-6,pan),70)}
     if(name==='dawn'){this.tone(392,.5,'sine',.06,393);this.tone(523,.6,'triangle',.05,260)}
+    if(name==='relay')this.tone(60,.05,'square',.05,-20,pan);
+    if(name==='clap'){this.tone(900,.05,'triangle',.12,-600,pan||0);this.tone(400,.12,'triangle',.1,-260,pan||0)}
+    if(name==='thunder')this.tone(50,.8,'sine',.12,-8,pan);
     if(name==='chow'){this.chime([392,.12,'square',.05,0,0],[523,.12,'square',.05,0,0],[659,.2,'square',.05,0,0])}
   }
   startAmbient(){this.unlock();if(!this.ctx||this.ambient)return;const gain=this.ctx.createGain();gain.gain.value=.001;gain.connect(this.master);const a=this.ctx.createOscillator(),b=this.ctx.createOscillator();a.frequency.value=4300;b.frequency.value=3950;a.connect(gain);b.connect(gain);a.start();b.start();this.ambient={gain,a,b};const pulse=()=>{if(!this.ambient)return;const t=this.ctx.currentTime;gain.gain.cancelScheduledValues(t);gain.gain.setValueAtTime(.001,t);gain.gain.linearRampToValueAtTime(.018,t+.025);gain.gain.exponentialRampToValueAtTime(.001,t+.12);this.ambient.timer=setTimeout(pulse,650+Math.random()*1250)};pulse();

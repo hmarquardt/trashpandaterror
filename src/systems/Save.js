@@ -8,7 +8,7 @@ import { SAVE_KEY } from './Progression.js';
 // loadSave() is the single entry point and is intentionally defensive so a
 // malformed or legacy save can never crash the launch.
 // ---------------------------------------------------------------------------
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 const CURRENT_PROG_DEFAULTS = { chow: 0, night: 1, upgrades: {}, bestRating: 'F' };
 
@@ -82,6 +82,8 @@ export function loadSave() {
   return {
     version,
     existed: raw !== null && typeof raw === 'object' && !!(raw.cats || raw.gary || raw.prog),
+    humanIntro: data.humanIntro === true,
+    kitIntro: data.kitIntro === true,
     cats,                       // {id:trust} copied through as-is (Game validates)
     gary: {
       memory: normalizeMemory(gary.memory),
@@ -95,9 +97,11 @@ export function loadSave() {
   };
 }
 
-export function buildSave({ cats = {}, garyMemory = {}, garyPersonality = [], garyHistory = {}, prog = {} } = {}) {
+export function buildSave({ cats = {}, garyMemory = {}, garyPersonality = [], garyHistory = {}, prog = {}, humanIntro = false, kitIntro = false } = {}) {
   return {
     version: SAVE_VERSION,
+    humanIntro,
+    kitIntro,
     cats,
     gary: {
       memory: normalizeMemory(garyMemory),

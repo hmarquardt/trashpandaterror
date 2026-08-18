@@ -164,6 +164,41 @@ async function tom(){
   console.log('TOM_SCENARIO_RESULTS\n'+R.join('\n'));
   const fail=R.filter(x=>x.startsWith('FAIL'));console.log('TOTAL '+(R.length-fail.length)+'/'+R.length);
 }
+async function escalate(){
+  const R=[],ok=(n,c)=>R.push((c?'PASS':'FAIL')+' | '+n);
+  await fresh(); await evalJs('localStorage.clear();location.reload();true'); await waitFor('!!window.__TRASH_PANDA_TERROR__',8000,'boot'); await sleep(300);
+  await evalJs('window.__TRASH_PANDA_TERROR__.prog.night=4;true');
+  await click('#shop-dusk'); await waitFor('window.__TRASH_PANDA_TERROR__.state.phase==="DUSK"',4000,'DUSK');
+  const ka=await evalJs('window.__TRASH_PANDA_TERROR__.kitsActive');
+  ok('Night4: kits planned', ka>=1);
+  await setSpeed(40); await startNight();
+  let kv=false;try{await waitFor('window.__TRASH_PANDA_TERROR__.kits.some(k=>k.root.visible)',12000,'kit visible');kv=true}catch(e){kv=false}
+  const ksc=await evalJs('window.__TRASH_PANDA_TERROR__.kits[0].root.scale.x');
+  ok('Night4: kit appears', kv);
+  ok('Night4: kit smaller than Gary', ksc<0.8);
+  await setSpeed(0);
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__,k=g.kits.find(k=>k.root.visible)||g.kits[0];k.root.visible=true;k.root.position.set(6,0,-6);k.state='watching';k.active=true;g.gary.root.visible=false;g.gary.active=false;g.scene.updateMatrixWorld(true);true})()`);
+  await click('#build-tray [data-tool="hose"]');
+  const kp=await worldPx(6,0.2,-6);
+  await mouse(kp.x,kp.y,'mouseMoved'); await mouse(kp.x,kp.y,'mousePressed');
+  let kh=false;try{await waitFor('window.__TRASH_PANDA_TERROR__.kits[0].state==="fleeing"',1500,'kit flees hose');kh=true}catch(e){kh=false}
+  await mouse(300,300,'mouseReleased');
+  ok('Night4: kit hosed -> flees', kh);
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;g.prog.night=5;g.humanIntroSeen=false;g.state.phase='NIGHT';g.state.speed=40;g.state.elapsed=40;g.humanCooldown=0;true})()`);
+  let hseen=false;try{await waitFor('window.__TRASH_PANDA_TERROR__.world.human&&window.__TRASH_PANDA_TERROR__.world.human.shown===1',6000,'human');hseen=true}catch(e){hseen=false}
+  ok('Night5: human emerges', hseen);
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;g.prog.chow=999;g.state.phase='PREP';true})()`);
+  await evalJs(`window.__TRASH_PANDA_TERROR__.buy('motionLight');true`);
+  ok('Floodlight: fixture built on buy', await evalJs('!!window.__TRASH_PANDA_TERROR__.world.floodlight'));
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;g.state.phase='NIGHT';g.state.speed=40;g.state.elapsed=60;g.gary.root.visible=true;g.gary.active=true;g.gary.delay=0;g.gary.root.position.set(1,0,2);g.gary.state='watching';g.floodRelay=false;g.floodOn=false;g.floodT=0;g.world.floodlight.off();g.scene.updateMatrixWorld(true);true})()`);
+  let flOn=false;try{await waitFor('window.__TRASH_PANDA_TERROR__.world.floodlight.spot.intensity>0',3000,'flood on');flOn=true}catch(e){flOn=false}
+  ok('Floodlight: activates on Gary', flOn);
+  const out=await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;const arr=[];for(const n of [4,5,6,7,8,10]){g.prog.night=n;g.resetNight();arr.push(g.mood)}return arr})()`);
+  ok('Night moods: >=3 distinct among runs', new Set(out).size>=3);
+  console.log('ESCALATE moodSamples='+JSON.stringify(out)+' mode='+process.argv[3]);
+  console.log('ESCALATE_SCENARIO_RESULTS\n'+R.join('\n'));
+  const fail=R.filter(x=>x.startsWith('FAIL'));console.log('TOTAL '+(R.length-fail.length)+'/'+R.length);
+}
 const scenario = process.argv[2] || 'shot';
-(async () => { if (scenario === 'input') await input(); else if (scenario === 'behavior') await behavior(); else if (scenario === 'tom') await tom(); else { await fresh(); if (scenario === 'diag') await diag(); else if (scenario === 'catdiag') await catdiag(); else if (scenario === 'shot') await shot(); else if (scenario === 'bounds') await bounds(); else if (scenario === 'bme') await bme(); else if (scenario === 'prep') await doPrep(); else if (scenario === 'idle') await doRun(false); else if (scenario === 'active') await doRun(true); } process.exit(0); })().catch(e => { console.error('FATAL', e); process.exit(1); });
+(async () => { if (scenario === 'input') await input(); else if (scenario === 'behavior') await behavior(); else if (scenario === 'tom') await tom(); else if (scenario === 'escalate') await escalate(); else { await fresh(); if (scenario === 'diag') await diag(); else if (scenario === 'catdiag') await catdiag(); else if (scenario === 'shot') await shot(); else if (scenario === 'bounds') await bounds(); else if (scenario === 'bme') await bme(); else if (scenario === 'prep') await doPrep(); else if (scenario === 'idle') await doRun(false); else if (scenario === 'active') await doRun(true); } process.exit(0); })().catch(e => { console.error('FATAL', e); process.exit(1); });
 async function snap() { return evalJs(SNAP); }

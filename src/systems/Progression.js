@@ -33,7 +33,7 @@ export const UPGRADES = [
     desc:'Manual, attention-hungry but brutal: flings Gary further and can shove a cat now and then.',
     max:2, costs:[30,55] },
   { id:'motionLight', name:'Guilt-Free Floodlight', icon:'☀',
-    desc:'Burns away darkness so Gary hesitates and snacks slower. Costs nothing to run, but it has a tell.',
+    desc:'Automatic floodlight mounted by the porch. Gary freezes and snacks slower whenever it lights him up. Costs nothing to run.',
     max:1, costs:[40] }
 ];
 
