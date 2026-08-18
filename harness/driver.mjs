@@ -114,6 +114,56 @@ async function input() {
   const failed = log.filter(x => x.startsWith('FAIL'));
   console.log('TOTAL ' + (log.length - failed.length) + '/' + log.length + ' passed' + (failed.length ? '\n' + failed.join('\n') : ''));
 }
+async function behavior(){
+  const R=[];const ok=(n,c)=>R.push((c?'PASS':'FAIL')+' | '+n);
+  await fresh(); await evalJs('localStorage.clear();location.reload();true'); await waitFor('!!window.__TRASH_PANDA_TERROR__',8000,'reboot'); await sleep(300);
+  await click('#shop-dusk'); await waitFor('window.__TRASH_PANDA_TERROR__.state.phase==="DUSK"',4000,'DUSK');
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;g.objects.place('sprinkler',new g.gary.root.position.constructor(-4,0,-5.5));g.scene.updateMatrixWorld(true);true})()`);
+  await setSpeed(12); await startNight();
+  let dLearn=false;try{await waitFor('window.__TRASH_PANDA_TERROR__.gary.memory.sprinkler>0',12000,'gary learns sprinkler');dLearn=true}catch(e){dLearn=false}
+  const dSpr=await evalJs('window.__TRASH_PANDA_TERROR__.objects.sprinklers.reduce((n,s)=>n+s.userData.triggered,0)');
+  const dMem=await evalJs('window.__TRASH_PANDA_TERROR__.gary.memory.sprinkler');
+  ok('D fresh-Gary triggers sprinkler + learns', dSpr>0 && dMem>0 && dLearn);
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;g.state.phase='NIGHT';g.state.speed=0;g.state.elapsed=10;g.cats.forEach(c=>c.root.visible=false);g.gary.root.visible=true;g.gary.root.position.set(6,0,-6);g.gary.state='watching';g.gary.active=true;g.gary.delay=0;g.gary.memory.hose=0;g.gary.fear=0;g.scene.updateMatrixWorld(true);true})()`);
+  const r0=await evalJs(`(()=>{const p=window.__TRASH_PANDA_TERROR__.gary.root.position;return p.x+','+p.z})()`);
+  await click('#build-tray [data-tool="hose"]');
+  const gp=await worldPx(6,0.2,-6);
+  await mouse(gp.x,gp.y,'mouseMoved'); await mouse(gp.x,gp.y,'mousePressed');
+  let hit=false;try{await waitFor('window.__TRASH_PANDA_TERROR__.gary.memory.hose>0',1500,'hose hit');hit=true}catch(e){hit=false}
+  const fugA=await evalJs('window.__TRASH_PANDA_TERROR__.gary.state==="fleeing"');
+  const r1=await evalJs(`(()=>{const p=window.__TRASH_PANDA_TERROR__.gary.root.position;return p.x+','+p.z})()`);
+  await mouse(300,300,'mouseReleased');
+  const s0=r0.split(',').map(Number),s1=r1.split(',').map(Number),shove=[s1[0]-s0[0],s1[1]-s0[1]];
+  console.error('EDISP before='+r0+' after='+r1+' shove='+shove.join(',')+' moved='+Math.hypot(shove[0],shove[1]).toFixed(3));
+  ok('E direct hose hit -> reaction + fleeing', hit && fugA);
+  ok('E recoil displacement away from hose origin', Math.hypot(shove[0],shove[1])>0.02 && (shove[0]+shove[1])>0);
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;g.gary.root.position.set(2,0,2);g.gary.state='watching';g.gary.memory.hose=0;g.gary.fear=0;g.scene.updateMatrixWorld(true);true})()`);
+  const npx=await worldPx(4,0.2,3);
+  await mouse(npx.x,npx.y,'mouseMoved'); await mouse(npx.x,npx.y,'mousePressed'); await sleep(300);
+  const fMem=await evalJs('window.__TRASH_PANDA_TERROR__.gary.memory.hose');
+  const fFlee=await evalJs('window.__TRASH_PANDA_TERROR__.gary.state==="fleeing"');
+  ok('F near miss -> no reaction', fMem===0 && !fFlee);
+  await mouse(300,300,'mouseReleased');
+  console.log('BEHAVIOR_SCENARIO_RESULTS\n'+R.join('\n'));
+  const fail=R.filter(x=>x.startsWith('FAIL'));
+  console.log('TOTAL '+(R.length-fail.length)+'/'+R.length+(fail.length?('\n'+fail.join('\n')):''));
+}
+async function tom(){
+  const R=[],ok=(n,c)=>R.push((c?'PASS':'FAIL')+' | '+n);
+  await fresh(); await evalJs('localStorage.clear();location.reload();true'); await waitFor('!!window.__TRASH_PANDA_TERROR__',8000,'boot'); await sleep(300);
+  await click('#shop-dusk'); await waitFor('window.__TRASH_PANDA_TERROR__.state.phase==="DUSK"',4000,'DUSK');
+  await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__;g.objects.place('sprinkler',new g.gary.root.position.constructor(-6,0,4.5));g.scene.updateMatrixWorld(true);true})()`);
+  await setSpeed(20); await startNight();
+  let learned=false;try{await waitFor('window.__TRASH_PANDA_TERROR__.cats[0].sprinklerDanger.length>0',12000,'tom spray');learned=true}catch(e){learned=false}
+  const sprCount=await evalJs('window.__TRASH_PANDA_TERROR__.nightLog.catStartles.tom||0');
+  let inside=0,samples=0;const t0=Date.now();
+  while(Date.now()-t0<3000){const d=await evalJs(`(()=>{const g=window.__TRASH_PANDA_TERROR__,t=g.cats[0],s=g.objects.sprinklers[0];if(!t||!s)return 9999;return Math.hypot(t.root.position.x-s.position.x,t.root.position.z-s.position.z)})()`);samples++;if(d<4.5)inside++;await sleep(180)}
+  ok('A Tom got sprayed & keeps hazard memory', learned && sprCount>=1);
+  ok('A Tom avoids re-entering the sprinkler', inside<=Math.max(2,Math.ceil(samples*0.4)));
+  console.log('TOMRES sprays='+sprCount+' insideSamples='+inside+'/'+samples+' hazardHits='+(await evalJs('window.__TRASH_PANDA_TERROR__.cats[0].sprinklerDanger.reduce((n,h)=>n+h.hits,0)')));
+  console.log('TOM_SCENARIO_RESULTS\n'+R.join('\n'));
+  const fail=R.filter(x=>x.startsWith('FAIL'));console.log('TOTAL '+(R.length-fail.length)+'/'+R.length);
+}
 const scenario = process.argv[2] || 'shot';
-(async () => { if (scenario === 'input') await input(); else { await fresh(); if (scenario === 'diag') await diag(); else if (scenario === 'catdiag') await catdiag(); else if (scenario === 'shot') await shot(); else if (scenario === 'bounds') await bounds(); else if (scenario === 'bme') await bme(); else if (scenario === 'prep') await doPrep(); else if (scenario === 'idle') await doRun(false); else if (scenario === 'active') await doRun(true); } process.exit(0); })().catch(e => { console.error('FATAL', e); process.exit(1); });
+(async () => { if (scenario === 'input') await input(); else if (scenario === 'behavior') await behavior(); else if (scenario === 'tom') await tom(); else { await fresh(); if (scenario === 'diag') await diag(); else if (scenario === 'catdiag') await catdiag(); else if (scenario === 'shot') await shot(); else if (scenario === 'bounds') await bounds(); else if (scenario === 'bme') await bme(); else if (scenario === 'prep') await doPrep(); else if (scenario === 'idle') await doRun(false); else if (scenario === 'active') await doRun(true); } process.exit(0); })().catch(e => { console.error('FATAL', e); process.exit(1); });
 async function snap() { return evalJs(SNAP); }
